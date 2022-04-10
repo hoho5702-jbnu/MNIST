@@ -212,6 +212,8 @@ for epoch in range(epochs):
     cost = np.mean(np.square(f - t_train))
     print('Epoch (', epoch + 1, '/', epochs, ') cost: ', cost, 'W: ', w.T, 'b:', b)
 ```
+![2번 랜덤데이터 결과](https://user-images.githubusercontent.com/91112750/162621140-93e68b2b-477d-4408-ac7f-424247776e2c.PNG)
+
 
 
 2) sklearn 데이터
@@ -248,3 +250,4 @@ for epoch in range(epochs):
     cost = np.mean(np.square(f - t_train))
     print('Epoch (', epoch + 1, '/', epochs, ') cost: ', cost, 'W: ', w, 'b:', b)
 ```
+![2번 sklearn](https://user-images.githubusercontent.com/91112750/162623018-aa374b65-4607-430d-8306-6be1c3330cbb.PNG)
