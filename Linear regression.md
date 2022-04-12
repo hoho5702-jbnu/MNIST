@@ -16,50 +16,36 @@
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
+np.random.seed(0)
 
 # 1. true 파라미터 값의 랜덤 할당
 r = 10
-d = 1  # int(input())
+d = 2  # int(input())
 n = 1000  # int(input())
 alpha = 0.1
 # w = d x 1
 w = np.random.uniform(-r, r, (d, 1))
-# print("w:\n",w)
+# print("w: ",w.T)
 
 # b = 1 x 1
 b = np.random.uniform(-r, r, (1, 1))
-# print("b:\n",b)
+# print("b: ",b)
 
 # 2. 데이터 셋 생성
 # x = n x d
 x = np.random.uniform(-r, r, (n, d))
-'''
-# x x(i)를 품고 있는 리스트
-x = []
-# xi d x 1
-for i in range (n):
-    xi = np.zeros((d, 1))
-    for j in range (d):
-        p = np.random.uniform(-r, r)
-        xi[j] = p
-    x.append(xi)
-'''
+
 # print("x:\n",x)
-# t
+# t = n x 1
 t = []
 for i in range(n):
     sd = (alpha * r)
-    ti = np.random.normal((x[i] * w + b)[0, 0], sd, d)  # 평균, 표준편차, 개수
+    ti = np.random.normal(((np.dot(x[i], w) + b)[0, 0]), sd, 1)  # 평균, 표준편차, 개수
     t.append(ti)
 t = np.array(t)
-# print("t:\n",t)
+# print("t: ",t)
 
-y = w * x + b
-# print(y)
-
-plt.scatter(x, y)
-plt.scatter(t, y)
-plt.show()
+y = np.dot(x, w) + b
 
 # 3. 데이터셋 분리
 n_of_train = int(len(x) * 0.85)
