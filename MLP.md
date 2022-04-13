@@ -12,7 +12,6 @@
 
 ## 4.3 (250 points) [Main project] MLP학습을 위한 Stochastic Gradient Descent Method 구현
 ```python
-
 import numpy as np
 from tensorflow import keras
 import math
@@ -25,19 +24,20 @@ class MLP:
         self.hidden_list = None
         self.w_list = None
         self.b_list = None
-        self.num_layer = 2  # 층 수
+        self.num_layer = 3  # 층 수
         print('nl: ', self.num_layer)
-        self.learning_rate = 0.01  # 학습률
+        self.learning_rate = 0.0009  # 학습률
         print('lr: ', self.learning_rate)
         self.batch_size = 32  # 배치 사이즈
         self.epochs = 40
+        self.lambd = 0.7
         self.losses = []  # 손실(훈련세트)
         self.val_losses = []  # 손실(검증세트)
         self.accuracy = []  # 정확도(훈련세트)
         self.val_accuracy = []  # 정확도(검증세트)
 
     def init_weights(self):
-        self.hidden_list = [300]  # 은닉층에 들어갈 히든수 1~10 랜덤 생성
+        self.hidden_list = [200, 100]  # 은닉층에 들어갈 히든수 1~10 랜덤 생성
         '''
         for i in range(self.num_layer - 1):
             self.hidden_list.append(np.random.randint(10) + 1)
@@ -90,7 +90,13 @@ class MLP:
             else:  # num_layer-1(출력층)
                 y = self.softmax(z)  # softmax 적용
                 y = np.clip(y, 1e-10, 1 - 1e-10)  # 로그 안에 0 이 들어가 nan 이 나오는 것을 방지
-        return -np.sum(y_data * np.log(y))
+
+        l2_cost = 0
+        for index in range(len(self.w_list)):
+            l2_cost += np.sum(np.square(self.w_list[index]))
+        l2_cost *= (self.lambd / (2 * self.batch_size))
+
+        return -np.sum(y_data * np.log(y)) + l2_cost
 
     def backpropagation(self, x, y):
         z_list = []
@@ -113,11 +119,11 @@ class MLP:
         # softmax cost func의 미분 결과는 pi - yi
         do = h_list[self.num_layer - 1] - y
         # print("do: ", do.shape)
-        du = np.dot(h_list[self.num_layer - 2].T, do)  # ( 마지막 은닉층의 hidden x 10 ).T
+        du = np.dot(h_list[self.num_layer - 2].T, do) + self.lambd * self.w_list[self.num_layer-1] # ( 마지막 은닉층의 hidden x 10 ).T
         # print("du: ", du.shape)
         db = np.sum(do)
-        du /= x.shape[0]
-        db /= x.shape[0]
+        du /= self.batch_size
+        db /= self.batch_size
         self.w_list[self.num_layer - 1] -= self.learning_rate * du
         self.b_list[self.num_layer - 1] -= self.learning_rate * db
 
@@ -134,16 +140,16 @@ class MLP:
 
             # print("dz: ", dz.shape)
             if layer > 0:  # 첫 은닉층이 아니라면
-                dw = np.dot(h_list[layer - 1].T, dz)
+                dw = np.dot(h_list[layer - 1].T, dz) + self.lambd * self.w_list[layer]
                 # print("dw: ", dw.shape)
                 # print("해당 w: ", w[j].shape)
                 db = np.sum(dz, axis=0)
-                dw /= x.shape[0]
-                db /= x.shape[0]
+                dw /= self.batch_size
+                db /= self.batch_size
                 self.w_list[layer] -= self.learning_rate * dw
                 self.b_list[layer] -= self.learning_rate * db
             else:  # layer = 0  첫번째 은닉층이면
-                dw = np.dot(x.T, dz)
+                dw = np.dot(x.T, dz) + self.lambd * self.w_list[layer]
                 db = np.sum(dz, axis=0)
                 dw /= x.shape[0]
                 db /= x.shape[0]
@@ -228,8 +234,7 @@ print(math.ceil(len(x_train) / 256))
 
 model = MLP()
 model.fit(x_train, y_train, x_val=x_val, y_val=y_val)
-model.score(x_test, y_test)
-
+print(model.score(x_test, y_test))
 
 ```
 ![image](https://user-images.githubusercontent.com/91112750/162624016-cfe069e2-cc59-4528-959c-e37fab281f50.png)
